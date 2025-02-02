@@ -1,26 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <draw:SkiaLayout
     x:Class="AlTanzeel.Pages.QuizReport"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:draw="http://schemas.appomobi.com/drawnUi/2023/draw"
-    xmlns:viewModels="clr-namespace:AlTanzeel.ViewModel"
     xmlns:models="clr-namespace:QuranParser"
+    xmlns:viewModels="clr-namespace:AlTanzeel.ViewModel"
+    x:DataType="viewModels:MainViewModel"
+    BackgroundColor="White"
     Tag="ReportWrapper">
+
     <ContentPage.BindingContext>
         <viewModels:MainViewModel />
     </ContentPage.BindingContext>
     <draw:SkiaLayout>
 
-        <draw:SkiaShape
-            Padding="8,0,8,0">
+        <draw:SkiaShape Padding="8,0,8,0">
 
             <draw:SkiaLayout
                 HorizontalOptions="Center"
-                RowDefinitions="Auto,Auto,Auto, *"
                 Spacing="4"
-                Type="Grid">
+                Type="Column">
 
                 <!--  Class name, بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيم, and, Masjid name  -->
                 <draw:SkiaLayout
@@ -94,22 +95,24 @@
                 <draw:SkiaLayout
                     x:Name="TranslationVerses"
                     Grid.Row="3"
-                    Type="Column"
+                    ItemsSource="{Binding SelectedAyasForTranslation}"
+                    RecyclingTemplate="Disabled"
                     Spacing="8"
-                    ItemsSource="{Binding Path=SelectedAyasForTranslation}">
+                    Type="Column">
 
                     <draw:SkiaLayout.ItemTemplate>
                         <DataTemplate>
-                            <draw:SkiaMarkdownLabel
-                                x:DataType="models:Aya"
-                                FontFamily="PDMS-Saleem"
-                                FontSize="24"
-                                HorizontalOptions="End"
-                                HorizontalTextAlignment="End"
-                                LineBreakMode="WordWrap"
-                                Text="{Binding Path=Text}"
-                                TextColor="Black"
-                                WidthRequest="575" />
+                            <draw:SkiaLayout HorizontalOptions="Fill">
+                                <draw:SkiaMarkdownLabel
+                                    x:DataType="models:Aya"
+                                    FontFamily="PDMS-Saleem"
+                                    FontSize="24"
+                                    HorizontalOptions="End"
+                                    HorizontalTextAlignment="End"
+                                    Text="{Binding Text}"
+                                    TextColor="Black"
+                                    WidthRequest="575" />
+                            </draw:SkiaLayout>
                         </DataTemplate>
                     </draw:SkiaLayout.ItemTemplate>
 

@@ -1,93 +1,155 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="AlTanzeel.Pages.MainPage"
-             xmlns:viewmodel="clr-namespace:AlTanzeel.ViewModel"
-             x:DataType="viewmodel:MainViewModel">
+<ContentPage
+    x:Class="AlTanzeel.Pages.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:draw="http://schemas.appomobi.com/drawnUi/2023/draw"
+    xmlns:models="clr-namespace:QuranParser"
+    xmlns:pages="clr-namespace:AlTanzeel.Pages"
+    xmlns:viewmodel="clr-namespace:AlTanzeel.ViewModel"
+    x:DataType="viewmodel:MainViewModel">
 
-    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto" Padding="10" RowSpacing="10">
+    <Grid
+        Padding="10"
+        RowDefinitions="Auto, Auto, Auto, Auto, 200, Auto"
+        RowSpacing="10">
 
-        <!-- Define the Grid for Label and DatePicker -->
-        <Frame Padding="10" BorderColor="Black">
-            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto">
+        <!--  Define the Grid for Label and DatePicker  -->
+        <Frame
+            Padding="10"
+            BorderColor="Black">
+            <Grid
+                ColumnDefinitions="*, Auto"
+                RowDefinitions="Auto">
 
-                <!-- Ensure both Label and DatePicker have the same vertical alignment -->
-                <Label Text="Quiz Date"
-                       Grid.Column="0"
-                       VerticalOptions="Center" />
+                <!--  Ensure both Label and DatePicker have the same vertical alignment  -->
+                <Label
+                    Grid.Column="0"
+                    Text="Quiz Date"
+                    VerticalOptions="Center" />
 
-                <DatePicker x:Name="QuizDatePicker"
-                            Format="MMMM dd, yyyy"
-                            Date="{Binding Date}"
-                            Grid.Column="1"
-                            VerticalOptions="Center" />
+                <DatePicker
+                    x:Name="QuizDatePicker"
+                    Grid.Column="1"
+                    Date="{Binding Date}"
+                    Format="MMMM dd, yyyy"
+                    VerticalOptions="Center" />
 
             </Grid>
         </Frame>
 
-        <!-- Frame for Surah display -->
+        <!--  Frame for Surah display  -->
         <Frame Grid.Row="1">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding NavigateToSelectSuraPageCommand}" />
             </Frame.GestureRecognizers>
-            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*">
-                <!-- The first label is in row 0 -->
-                <Label Text="Selected Surah" Grid.Row="0" />
-
-                <!-- The second label is now in row 1 -->
+            <Grid
+                ColumnDefinitions="*"
+                RowDefinitions="Auto, Auto">
+                <!--  The first label is in row 0  -->
                 <Label
-                    Text="{Binding SelectedSura.SurahInfo}"
+                    Grid.Row="0"
+                    Text="Selected Surah" />
+
+                <!--  The second label is now in row 1  -->
+                <Label
                     Grid.Row="1"
-                    HorizontalTextAlignment="End"
+                    FontFamily="PDMS-Saleem"
                     FontSize="24"
-                    FontFamily="PDMS-Saleem" />
+                    HorizontalTextAlignment="End"
+                    Text="{Binding SelectedSura.SurahInfo}" />
             </Grid>
         </Frame>
 
-        <!-- Frame to select verses for translation -->
+        <!--  Frame to select verses for translation  -->
         <Frame Grid.Row="2">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding NavigateToSelectTranslationVersesPageCommand}" />
             </Frame.GestureRecognizers>
-            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*" RowSpacing="10">
-                <!-- The first label is in row 0 -->
-                <Label Text="Select verses for translation" Grid.Row="0" />
+            <Grid
+                ColumnDefinitions="*"
+                RowDefinitions="Auto, Auto, Auto"
+                RowSpacing="10">
+                <!--  The first label is in row 0  -->
+                <Label
+                    Grid.Row="0"
+                    Text="Select verses for translation" />
 
-                <!-- The second label is now in row 1 -->
-                <BoxView HeightRequest="2" Color="Gray" HorizontalOptions="FillAndExpand" Grid.Row="1" />
+                <!--  The second label is now in row 1  -->
+                <BoxView
+                    Grid.Row="1"
+                    HeightRequest="2"
+                    HorizontalOptions="FillAndExpand"
+                    Color="Gray" />
 
 
-                <!-- The third label is now in row 2 -->
-                <Label Text="Tap on the row to select verses." Grid.Row="2" />
+                <!--  The third label is now in row 2  -->
+                <Label
+                    Grid.Row="2"
+                    Text="Tap on the row to select verses." />
             </Grid>
         </Frame>
 
 
-        <!-- Frame to select words meanings -->
+        <!--  Frame to select words meanings  -->
         <Frame Grid.Row="3">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding NavigateToSelectWordsMeaningsPageCommand}" />
             </Frame.GestureRecognizers>
-            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*" RowSpacing="10">
-                <!-- The first label is in row 0 -->
-                <Label Text="Select words meaning." Grid.Row="0" />
+            <Grid
+                ColumnDefinitions="*"
+                RowDefinitions="Auto, Auto, Auto"
+                RowSpacing="10">
+                <!--  The first label is in row 0  -->
+                <Label
+                    Grid.Row="0"
+                    Text="Select words meaning." />
 
-                <!-- The second label is now in row 1 -->
-                <BoxView HeightRequest="2" Color="Gray" HorizontalOptions="FillAndExpand" Grid.Row="1" />
+                <!--  The second label is now in row 1  -->
+                <BoxView
+                    Grid.Row="1"
+                    HeightRequest="2"
+                    HorizontalOptions="FillAndExpand"
+                    Color="Gray" />
 
 
-                <!-- The third label is now in row 2 -->
-                <Label Text="Tap on the row to select words for words meanings." Grid.Row="2" />
+                <!--  The third label is now in row 2  -->
+                <Label
+                    Grid.Row="2"
+                    Text="Tap on the row to select words for words meanings." />
             </Grid>
         </Frame>
 
-        <Button
-            Text="Create PDF"
-            FontAttributes="Bold"
+        <!--  PREVIEW  -->
+
+
+        <draw:Canvas
             Grid.Row="4"
+            Gestures="Lock"
+            x:DataType="viewmodel:MainViewModel"
+            BackgroundColor="Gainsboro"
+            HorizontalOptions="Fill"
+            VerticalOptions="FillAndExpand">
+
+            <draw:SkiaScroll HorizontalOptions="Fill" VerticalOptions="Fill">
+            
+            <pages:QuizReport/>
+
+            </draw:SkiaScroll>
+
+
+        </draw:Canvas>
+
+
+
+        <Button
+            Grid.Row="5"
             Clicked="Button_OnClicked"
+            FontAttributes="Bold"
             HorizontalOptions="Center"
+            Text="Create PDF"
             VerticalOptions="Center" />
+
     </Grid>
 </ContentPage>

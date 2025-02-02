@@ -1,7 +1,9 @@
 ﻿using AlTanzeel.ViewModel;
 using DrawnUi.Maui.Draw;
 using DrawnUi.Maui.Infrastructure;
+using Polly;
 using SkiaSharp;
+using System.Text;
 
 namespace AlTanzeel.Pages;
 
@@ -25,7 +27,7 @@ public partial class MainPage
         var status = await Permissions.RequestAsync<Permissions.StorageWrite>();
 
         if (status == PermissionStatus.Granted)
-            CreatePdfPages(Pdf.GetPaperSizeInInches(PaperFormat.A4), 150); // A4 page for 150 DPI
+            CreatePdfPages(Pdf.GetPaperSizeInInches(PaperFormat.Custom), 150); // A4 page for 150 DPI
         else
             // Handle the case where permission is denied
             Console.WriteLine("Permission denied to access storage.");
@@ -37,6 +39,52 @@ public partial class MainPage
 
         return filename;
     }
+
+
+
+    /// <summary>
+    /// This scroll must have already been rendered for RenderTree to be filled for every layout inside.
+    /// Returns a list of offsets for pages in order not to break drawn content, bt split pages between drawn controls.
+    /// </summary>
+    /// <param name="viewport"></param>
+    /// <returns></returns>
+    public IEnumerable<float> GetPageSplitOffsetsForScrollCells(SkiaScroll viewport, float pageHeight)
+    {
+        var vstack = viewport.Content;
+
+        if (vstack.RenderTree.Count < 1)
+        {
+            return new List<float>() { 0 };
+        }
+
+        var pagesTotal = (int)(vstack.DrawingRect.Height / pageHeight);
+        var ret = new List<float>();
+        var offset = 0f;
+        var cellIndex = 0;
+        var pageBottom = pageHeight;
+
+        for (int page = 0; page < pagesTotal; page++)
+        {
+
+            var cell = vstack.RenderTree[0];
+            while (cell.Rect.Bottom < pageBottom)
+            {
+                cell = vstack.RenderTree[cellIndex];
+
+                cellIndex++;
+                if (cellIndex > vstack.RenderTree.Count - 1)
+                    break;
+            }
+
+            ret.Add(offset);
+            offset = cell.Rect.Bottom;
+
+        }
+
+        return ret;
+    }
+
+
 
     async Task CreatePdfPages(SKSize inches, int dpi)
     {
@@ -104,16 +152,35 @@ public partial class MainPage
                  //====================
                  var scale = 1; //do not change this
 
-                 wrapper.Measure(paper.Width, paper.Height, scale);
-                 wrapper.Arrange(new SKRect(0, 0, paper.Width, paper.Height),
+                 var height = float.PositiveInfinity; //paper.Height
+
+                 wrapper.Measure(paper.Width, height, scale);
+                 wrapper.Arrange(new SKRect(0, 0, wrapper.MeasuredSize.Pixels.Width, wrapper.MeasuredSize.Pixels.Height),
                      wrapper.MeasuredSize.Pixels.Width, wrapper.MeasuredSize.Pixels.Height, scale);
 
                  var contentSize = new SKSize(content.MeasuredSize.Units.Width, content.MeasuredSize.Units.Height);
 
+                 //--
+                 using (var recorder = new SKPictureRecorder())
+                 {
+                     var cacheRecordingArea = wrapper.DrawingRect;
+                     var recordingContext = new SkiaDrawingContext
+                     {
+                         IsVirtual = true,
+                         Canvas = recorder.BeginRecording(cacheRecordingArea),
+                         Width = cacheRecordingArea.Width,
+                         Height = cacheRecordingArea.Height
+                     };
+
+                     wrapper.Render(recordingContext, new SKRect(0, 0, contentSize.Width, contentSize.Height), scale);
+
+                     using var skPicture = recorder.EndRecording();
+                 }
+
                  //====================
                  //STEP 2: Render pages
                  //====================
-                 var pages = Pdf.SplitToPages(contentSize, pageSizeAccountMargins);
+                 var pages = Pdf.SplitStackToPages(content, true, pageSizeAccountMargins);
 
                  //we need a local file to ba saved in order to share it
                  fullFilename = Files.GetFullFilename(filename, StorageType.Cache, subfolder);
@@ -147,14 +214,39 @@ public partial class MainPage
                                  };
 
                                  //first rendering to launch loading images and first layout
-                                 wrapper.Render(ctx, new SKRect(0, 0, paper.Width, paper.Height), scale);
+                                 //viewport.Render(ctx, new SKRect(0, 0, paper.Width, page.Height), scale);
 
                                  //in our specific case we have images inside that load async,
                                  //so wait for them and render final result
-                                 
+
                                  //second rendering required to reflect layout changes and async images are loaded
                                  canvas.Clear(SKColors.White); //non-transparent reserves space inside pdf
-                                 wrapper.Render(ctx, new SKRect(0, 0, paper.Width, paper.Height), scale);
+
+
+                                 float currentPageTop = page.Position.Y;
+                                 float currentPageBottom = currentPageTop + pageSizeAccountMargins.Height;
+
+                                 // Ensure we don't exceed the content's bottom
+                                 if (currentPageBottom > contentSize.Height)
+                                     currentPageBottom = contentSize.Height;
+
+                                 var sourceRect = new SKRect(
+                                     0,
+                                     currentPageTop,
+                                     contentSize.Width,
+                                     currentPageBottom);
+
+                                 // Destination rect is within the page, respecting margins
+                                 var destRect = new SKRect(
+                                     0,
+                                     0,
+                                     sourceRect.Width,
+                                     sourceRect.Height);
+
+                                 // Draw the chunk of the pre-rendered surface onto the PDF canvas
+                                 //canvas.DrawImage(snapshot, sourceRect, destRect);
+
+                                 wrapper.Render(ctx, new SKRect(0, 0, paper.Width, page.Height), scale);
                              }
                              document.EndPage();
                          }
@@ -176,7 +268,7 @@ public partial class MainPage
                      Files.CloseFile(file, true);
                      await Task.Delay(500); //we need this for slow file system
                  }
-                 
+
                  Console.WriteLine($"TAKASUR:: {fullFilename}");
                  //can share the file now
                  Files.Share("PDF", new string[] { fullFilename });

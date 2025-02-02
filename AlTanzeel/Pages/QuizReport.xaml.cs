@@ -5,6 +5,11 @@ namespace AlTanzeel.Pages;
 
 public partial class QuizReport : SkiaLayout
 {
+    public QuizReport()
+    {
+        InitializeComponent();
+    }
+
     private MainViewModel viewModel;
 
     public QuizReport(MainViewModel viewModel)
